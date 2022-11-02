@@ -13,6 +13,7 @@
   debug:
     msg: "{{ output.json | json_query('results[*].name') }}"
   register: lista_hosts
+  
 - name: create a list
   set_fact:
     lista_id: "{{ lista_hosts.msg }}"
