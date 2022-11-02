@@ -1,0 +1,4 @@
+---
+# tasks file for roles/crear archivos
+- name: crear carpetas
+  include_tasks: create_files.yml

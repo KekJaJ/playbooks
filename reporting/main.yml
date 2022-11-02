@@ -1,0 +1,7 @@
+---
+- name: crear reportes maquinas aix
+  hosts: all
+  gather_facts: yes
+
+  roles:
+    - reporting
