@@ -1,0 +1,5 @@
+#variable file for roles/files reporting
+list_comands:
+  - ls
+  - ls -l
+  - echo ola

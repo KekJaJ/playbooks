@@ -1,0 +1,7 @@
+---
+- name: comando 1
+  command: "{{ list_comands }}"
+  register: output
+  
+- debug:
+    msg: "{{ output }}"

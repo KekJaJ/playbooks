@@ -1,6 +1,6 @@
 ---
 - name: crear reportes maquinas aix
-  hosts: all
+  hosts: localhost
   gather_facts: yes
 
   roles:

@@ -1,0 +1,24 @@
+---
+- name: refresh inventory group
+  uri:
+    url: https://192.168.1.136/api/v2/inventories/68/hosts/
+    headers:
+        Authorization: 'Basic YWRtaW46YWRtaW4='
+    status_code: [200, 201, 204]
+    method: GET
+    validate_certs: no
+  register: output
+  
+- name: register hosts list
+  debug:
+    msg: "{{ output.json | json_query('results[*].name') }}"
+  register: lista_hosts
+- name: create a list
+  set_fact:
+    lista_id: "{{ lista_hosts.msg }}"
+               
+- name: CSV Create file and set the header
+  file:
+    path: "/home/kev/reports/{{ item }}"
+    state: directory
+  with_items: "{{ lista_id }}"
