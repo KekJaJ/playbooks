@@ -1,7 +1,7 @@
 ---
 # tasks file for roles/crear archivos
-- name: crear carpetas
-  include_tasks: create_files.yml
+#- name: crear carpetas
+#  include_tasks: create_files.yml
 
 - name: ejecucion comandos
   include_tasks: validaciones_aix.yml

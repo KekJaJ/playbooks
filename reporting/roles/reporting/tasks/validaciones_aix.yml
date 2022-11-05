@@ -1,7 +1,212 @@
 ---
-- name: comando 1
-  command: "{{ list_comands }}"
-  register: output
+- name: validacion sistema operativo
+  command: oslevel -s
+  register: _OS_version
   
-- debug:
-    msg: "{{ output }}"
+- name: habilitacion de usuarios su, desactivacion de usuarios y grupos
+  command: lsuser ALL
+  register: _user_conf
+
+- name: ejecucion de deamons
+  command: ps -fea
+  register: _deamons
+  
+- name: estructura disco root
+  command: "{{ item }}"
+  with_items: "{{ estructura_disco_root }}"
+  register: _disc_root
+
+- name: usuarios y estructura de almacenamiento 
+  command: ls -ltr /home/
+  register: _user_home
+  
+- name: registro de eventos del sistema
+  command: "{{ item }}"
+  with_items: "{{ reg_events_sis }}"
+  register: _res_
+
+- name: logs varios de sistema
+  command: ls -ltr /var/adm
+  register: _log_sistem
+
+- name: sincronizacion ntp
+  command: "{{ item }}"
+  with_items: 
+    - cat /etc/npt.conf
+    - ntpq -p
+  register: _sinc_ntp
+  
+- name: Ajuste de parámetros generales para logueo, terminales tty, mensajes de alerta de logueo
+  command: cat /etc/security/login.cfg
+  register: _para_gen_loguin
+
+- name: Timeout general de sesiones de conexión
+  command: cat /etc/security/.profile
+  register: _time_out
+  
+- name: Instalación del servicio de conexión SSH
+  command: ssh
+  register: _ssh_conection
+  
+- name: Instalación del servicio de conexión SSH
+  command: cat  /etc/ssh/sshd_config | grep  LoginGraceTime 
+  register: _ssh_confi  
+  
+- name: Restricciones de conexión ssh
+  command: "{{ item }}"
+  with_items: 
+    - cat /etc/host.allow
+    - cat /etc/hosts.deny
+  register: _ssh_restr  
+
+- name: Verificar que el root será el único con UID 0
+  command: lsuser -c -a id home ALL | sed '/^#.*/d' | tr ':' '\011'
+  register: _root_uid 
+
+#revisar punto 19 - 44
+#- name: Eliminación de archivos información de login de usuarios
+#  command: "find `awk -F: '{print $6}' /etc/passwd` -name .netrc -ls"
+#  register: _ssh_confi 
+   
+- name: Eliminación de archivos información huérfanos
+  command: find / -nouser -ls
+  register: _file_hue
+  
+- name: Verificación de consistencia de grupos
+  command: grpck -n ALL
+  register: _cons_group 
+
+- name: Verificación de consistencia de usuarios
+  command: lsgroup ALL
+  register: _cons_users  
+  
+- name: Definición de parámetros default para la construcción de usuarios
+  command: cat /etc/security/user
+  register: _param_user   
+
+- name: Limpieza de archivos configuraciones legacy
+  command: "{{ item }}"
+  with_items: 
+    - cat /etc/ftpusers
+    - cat /etc/ftpd/ftpuser
+  register: _conf_legacy
+  
+- name: Ajustes de parámetros TCP/IP
+  command: /usr/sbin/no  -L | grep  udp_sendspace
+  register: _param_tcp_ip
+
+- name: Desactivación de seguridad para subproceso
+  command: cat /etc/inetd.conf | grep (lista de documento)
+  register: _seg_sub_proc     
+  
+- name: Verificación y bloque de permisos de ejecución de sistemas base
+  command: ls -l /etc | grep (lista de archivos)
+  register: _perm_exe_sisbas   
+       
+- name: Verificación de acceso a crontab
+  command: ls  /var/adm/cron
+  register: _ver_acs_crontab  
+  
+#- name: Renombrar comandos potencialmente peligrosos
+#  command: por validar
+#  register: _comand_pot_pel   
+  
+- name:  prompt en el perfil del usuario
+  command: cat /home/username/.profile
+  register: _prompt_user     
+  
+- name: Creación de etiquetas de uso y rutas por profile
+  command: cat /etc/security/user | grep root 
+  register: _etiq_prof   
+  
+- name: Configuración SNMP
+  command: {{ item }}
+  with_items: "{{ configuracion_snmp }}}"
+  register: _snmp  
+
+- name: Configuración SNMP archivos vac
+  command: {{ item }}
+  with_items: "{{ archivos_vac }}}"
+  register: _snmp_vac     
+  
+- name: Creación de dominios SNMP
+  command: /usr/sbin/smtctl        
+  register: _daemon_snmp     
+  
+- name: Cambio del Block size permitido
+  command: lsattr -EH sys0 | grep ncargs
+  register: _block_size  
+  
+# validar  
+#- name:  Configuración smit chgsys
+#  command: lsattr -EHl sys0 | grep --------
+#  register: _smit_cgsys     
+  
+- name: Parámetros tuneables de sistema
+  command: vmo -a | grep minperm
+  register: _para_tune_sis     
+  
+- name: Swap y temporales
+  command: df -g | grep tmp
+  register: _swap_temp
+  
+- name: Cambio esquema de seguridad
+  command: "{{ item }}"
+  with_items:
+    - cat /etc/security/login.cfg | grep auth_type  
+    - cat /etc/pam.conf | grep session
+
+  register: _cam_esq_seg  
+ 
+- name: Validación del Time Zone 
+  command: "{{ item }}"
+  with_items:
+    - 'echo $TZ' 
+    - 'ntpdate -d [IP]'
+  register: _time_zone
+ 
+- name: Revisar que el demonio RMC este activo 
+  command:  lssrc -s ctrmc
+  register: _dem_rmc_file  
+
+- name: Comprobar el estado del dominio de gestión y el dominio del mismo nivel
+  command: /opt/rsct/bin/rmcdomainstatus -s ctrmc
+  register: _pdom_ges
+  
+- name: Revision de utilitarios EMC en Power HA
+  command: lppchk -f {{ item }}
+  with_items: "{{ utilitarios_emc }}"
+  register: _util_emc_pha
+  
+- name: Revisión de utilitarios EMC ODM / EMC PowerPath, Validar si el nivel de version es el mas reciente o librerado  recientemente. 
+  command:   lslpp -L | grep EMC 
+  register: _util_emcodm_emcppath    
+
+- name: Validar Red heartbeat a nivel de PowerHA
+  command: /usr/es/sbin/cluster/utilities/cltopinfo -c
+  register: _red_lvl_pwha    
+  
+- name: Configuracion de parametros MQ
+  command:  cat /etc/security/limits | grep 
+  register: _param_mq
+
+- name: Validar los parametros de limites del usuario mqm 
+  command: cat /etc/security/.profile
+  register: _lmit_mqm 
+  
+- name: Modificacion del perfil
+  command: cat /etc/security/.profile
+  register: _mod_perf 
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

@@ -1,0 +1,26 @@
+#variable file for roles/files reporting
+estructura_disco_root:
+  - df -g
+  - lspv
+reg_events_sis:
+  - errpt
+  - ps -ef | grep errdemon 
+utilitarios_emc:
+  - SYMCLI.DATA.rte 
+  - SYMCLITHINCORE.rte
+  - SYMCLI.BASE.rte 
+  - SYMCLI.CERT.rte
+  - SYMCLI.SYMCLI.rte
+  - SYMCLI.SYMRECOVER.rte
+  - SYMCLI.SRM.rte
+  - SYMCLI.JNI.rte
+  - SYMCLI.64BIT.rte
+configuracion_snmp:
+  - cat /etc/snmpdv3.conf  | grep COMMUNITY
+  - cat /etc/snmpdv3.conf  | grep bcrnmp
+  - snmpinfo -m dump -v -h localhost -c bcrsnmp -o
+  - /usr/es/sbin/cluster/hacmp.defs 
+  - date;hostname;snmpinfo -c bcrsnmp -m dump -v interfaces | head
+  - date;hostname;snmpinfo -m dump -v -h localhost -c bcrsnmp -o /usr/es/sbin/cluster/hacmp.defs nodeTable date;hostname;cldump
+archivos_vac:
+  
